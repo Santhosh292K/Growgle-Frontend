@@ -84,10 +84,10 @@ npm run lint         # Run ESLint
 
 | Repository | Description |
 | --- | --- |
-| [genai_geodata](https://github.com/akshayks13/genai_geodata) | A Flask microservice that queries BigQuery, enriches results with Vertex AI/Gemma embeddings, and returns Gemini-powered contextual answers for geo and region-aware insights. |
-| [genai_career_insights](https://github.com/akshayks13/genai_career_insights) | Modular Express.js ETL and analytics service that ingests news and job feeds into BigQuery and uses Vertex AI/Gemini to produce AI-curated career recommendations. |
-| [Gen_AI_Exchange (backend/auth)](https://github.com/Raamprathap/Gen_AI_Exchange) | Firebase-backed authentication and lightweight API layer for user identity, token refresh, and session management across Growgle services. |
-| [gemini-Computer-Use](https://github.com/akshayks13/gemini-Computer-Use) | Python agent suite using Gemini Computer + Playwright to control Chromium via vision+action for automating tasks like filling job applications and complex web interactions. |
+| [genai_geodata](https://github.com/Santhosh292k/Growgle-GeoAI) | A Flask microservice that queries BigQuery, enriches results with Vertex AI/Gemma embeddings, and returns Gemini-powered contextual answers for geo and region-aware insights. |
+| [genai_career_insights](https://github.com/akshayks13/Growgle-CareerPulse) | Modular Express.js ETL and analytics service that ingests news and job feeds into BigQuery and uses Vertex AI/Gemini to produce AI-curated career recommendations. |
+| [Gen_AI_Exchange (backend/auth)](https://github.com/Raamprathap/Growgle-Backend) | Firebase-backed authentication and lightweight API layer for user identity, token refresh, and session management across Growgle services. |
+| [gemini-Computer-Use](https://github.com/Raamprathap/Growgle-AutoApply) | Python agent suite using Gemini Computer + Playwright to control Chromium via vision+action for automating tasks like filling job applications and complex web interactions. |
 
 ## Team
 
