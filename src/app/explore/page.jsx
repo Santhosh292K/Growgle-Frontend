@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Mic,
   MicOff,
@@ -19,25 +20,55 @@ import {
   Image as ImageIcon,
   ChevronDown,
   ChevronLeft,
+  Plus,
+  Sparkles,
+  GraduationCap,
+  Briefcase,
+  Target,
+  Rocket,
+  Map,
+  Brain,
+  Settings,
+  BarChart3,
+  Code,
+  Users,
+  MessageCircle,
+  Lightbulb,
+  DollarSign,
+  Building,
+  TrendingUp,
+  Handshake,
+  Award,
+  Calendar,
+  BookOpen,
+  FolderOpen,
+  Trophy,
+  Compass,
+  Star,
+  Zap,
+  ArrowRight,
 } from "lucide-react";
 
 import { sendExplore, sendPrompt } from "@/lib/services/exploreApi";
 import { getUserProfile } from "@/lib/services/profileApi";
 import { translateToEnglish, detectLanguage } from "@/lib/services/translateApi";
-
-// Temporary inline implementations (replace with actual imports above)
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+import AuthGuard from "@/components/AuthGuard";
 
 function useTypewriter(
   text,
-  { speed = 30, enabled = true, onTypingState = () => {} }
+  { speed = 30, enabled = true, onTypingState = () => { } }
 ) {
   const [displayedText, setDisplayedText] = useState("");
   const indexRef = useRef(0);
   const intervalRef = useRef(null);
+  // Track if effect has been set up for this text
+  const textRef = useRef(text);
+  const enabledRef = useRef(enabled);
 
   useEffect(() => {
     const safeText = typeof text === "string" ? text : "";
+    textRef.current = text;
+    enabledRef.current = enabled;
 
     if (!enabled) {
       if (intervalRef.current) clearInterval(intervalRef.current);
@@ -77,7 +108,8 @@ function useTypewriter(
         intervalRef.current = null;
       }
     };
-  }, [text, enabled, speed, onTypingState]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [text, enabled, speed]);
 
   return displayedText;
 }
@@ -87,36 +119,41 @@ const MODES = [
     id: "learning",
     label: "Learning",
     desc: "Master concepts with step-by-step explanations",
-    icon: "🎓",
+    icon: GraduationCap,
     color: "from-blue-500 to-cyan-500",
+    bgGradient: "from-blue-500/10 to-cyan-500/10",
   },
   {
     id: "interview",
     label: "Interview",
     desc: "Practice with mock interviews and expert feedback",
-    icon: "💼",
+    icon: Briefcase,
     color: "from-emerald-500 to-teal-500",
+    bgGradient: "from-emerald-500/10 to-teal-500/10",
   },
   {
     id: "mentorship",
     label: "Mentorship",
     desc: "Get personalized career guidance and action plans",
-    icon: "🎯",
+    icon: Target,
     color: "from-purple-500 to-pink-500",
+    bgGradient: "from-purple-500/10 to-pink-500/10",
   },
   {
     id: "explore",
     label: "Explore",
     desc: "Discover new opportunities and career paths",
-    icon: "🚀",
+    icon: Rocket,
     color: "from-orange-500 to-red-500",
+    bgGradient: "from-orange-500/10 to-red-500/10",
   },
   {
     id: "roadmap",
     label: "Roadmap",
     desc: "Build your personalized learning journey",
-    icon: "🗺️",
+    icon: Map,
     color: "from-indigo-500 to-violet-500",
+    bgGradient: "from-indigo-500/10 to-violet-500/10",
   },
 ];
 
@@ -126,25 +163,25 @@ const MODE_SUGGESTIONS = {
       title: "Data Structures Fundamentals",
       prompt:
         "Can you explain the most important data structures for software engineering interviews with examples?",
-      icon: "🧠",
+      icon: Brain,
     },
     {
       title: "System Design Principles",
       prompt:
         "Walk me through the fundamentals of system design that I should know for tech interviews.",
-      icon: "⚙️",
+      icon: Settings,
     },
     {
       title: "Algorithm Patterns",
       prompt:
         "Explain common algorithm patterns like two pointers, sliding window, and dynamic programming with examples.",
-      icon: "📊",
+      icon: BarChart3,
     },
     {
       title: "Language Comparison",
       prompt:
         "What are the key differences between Python, Java, and JavaScript for backend development?",
-      icon: "💻",
+      icon: Code,
     },
   ],
   interview: [
@@ -152,25 +189,25 @@ const MODE_SUGGESTIONS = {
       title: "Technical Interview Mock",
       prompt:
         "Give me a mock technical interview question for a software engineer position and provide feedback on my approach.",
-      icon: "🎯",
+      icon: Target,
     },
     {
       title: "Behavioral Questions",
       prompt:
         "Ask me common behavioral interview questions and help me structure better STAR method responses.",
-      icon: "🗣️",
+      icon: MessageCircle,
     },
     {
       title: "System Design Challenge",
       prompt:
         "Give me a system design interview question and guide me through the solution step by step.",
-      icon: "🏗️",
+      icon: Building,
     },
     {
       title: "Negotiation Practice",
       prompt:
         "Help me practice salary negotiation scenarios and provide tips for discussing compensation.",
-      icon: "💰",
+      icon: DollarSign,
     },
   ],
   mentorship: [
@@ -178,25 +215,25 @@ const MODE_SUGGESTIONS = {
       title: "Career Transition Strategy",
       prompt:
         "I want to transition from [current role] to [target role]. Help me create a detailed action plan.",
-      icon: "🚀",
+      icon: Rocket,
     },
     {
       title: "Skills Assessment",
       prompt:
         "Analyze my current skills and identify gaps I need to fill for my target role in tech.",
-      icon: "📈",
+      icon: TrendingUp,
     },
     {
       title: "Professional Networking",
       prompt:
         "Give me actionable strategies to build a professional network in the tech industry.",
-      icon: "🤝",
+      icon: Handshake,
     },
     {
       title: "Personal Branding",
       prompt:
         "Help me develop my personal brand and online presence for career advancement.",
-      icon: "✨",
+      icon: Sparkles,
     },
   ],
   explore: [
@@ -204,25 +241,25 @@ const MODE_SUGGESTIONS = {
       title: "Career Path Discovery",
       prompt:
         "Show me different career paths in tech and help me understand which might fit my interests and skills.",
-      icon: "🔍",
+      icon: Compass,
     },
     {
       title: "Emerging Tech Trends",
       prompt:
         "What are the most promising emerging technology fields and career opportunities they offer?",
-      icon: "🌟",
+      icon: Star,
     },
     {
       title: "Remote Opportunities",
       prompt:
         "Explore remote-friendly career paths and companies that offer flexible work arrangements.",
-      icon: "🌍",
+      icon: Globe,
     },
     {
       title: "Industry Analysis",
       prompt:
         "Compare working at startups vs big tech companies vs consulting firms - pros and cons of each.",
-      icon: "⚖️",
+      icon: Building,
     },
   ],
   roadmap: [
@@ -230,25 +267,25 @@ const MODE_SUGGESTIONS = {
       title: "90-Day Success Plan",
       prompt:
         "Create a detailed 90-day roadmap to improve my chances of landing a software engineer role.",
-      icon: "📅",
+      icon: Calendar,
     },
     {
       title: "Structured Learning Path",
       prompt:
         "Design a weekly learning schedule to master full-stack development in 6 months.",
-      icon: "📚",
+      icon: BookOpen,
     },
     {
       title: "Portfolio Projects",
       prompt:
         "Help me plan and prioritize projects to build an impressive portfolio for job applications.",
-      icon: "📁",
+      icon: FolderOpen,
     },
     {
       title: "Certification Journey",
       prompt:
         "Recommend certifications and their timeline for advancing in cloud computing/data science/AI.",
-      icon: "🏆",
+      icon: Trophy,
     },
   ],
 };
@@ -367,7 +404,7 @@ function ChatHistory({
             <option value="all">All Modes</option>
             {MODES.map((mode) => (
               <option key={mode.id} value={mode.id}>
-                {mode.icon} {mode.label}
+                {mode.label}
               </option>
             ))}
           </select>
@@ -400,11 +437,10 @@ function ChatHistory({
             {filteredSessions.map((session) => (
               <div
                 key={session.id}
-                className={`px-5 py-4 border-b border-gray-50 hover:bg-gray-50 cursor-pointer transition-all duration-200 ${
-                  currentSessionId === session.id
-                    ? "bg-blue-50 border-l-4 border-l-blue-600"
-                    : ""
-                }`}
+                className={`px-5 py-4 border-b border-gray-50 hover:bg-gray-50 cursor-pointer transition-all duration-200 ${currentSessionId === session.id
+                  ? "bg-blue-50 border-l-4 border-l-blue-600"
+                  : ""
+                  }`}
                 onClick={() => onLoadSession(session.id)}
               >
                 <div className="flex items-start justify-between mb-2">
@@ -436,14 +472,20 @@ function ChatHistory({
                 </div>
 
                 <div className="flex items-center gap-2 mb-2">
-                  <span
-                    className={`text-xs px-2.5 py-1 rounded-full bg-gradient-to-r ${getModeColor(
-                      session.mode
-                    )} text-white font-medium`}
-                  >
-                    {MODES.find((m) => m.id === session.mode)?.icon}{" "}
-                    {MODES.find((m) => m.id === session.mode)?.label}
-                  </span>
+                  {(() => {
+                    const modeData = MODES.find((m) => m.id === session.mode);
+                    const ModeSessionIcon = modeData?.icon;
+                    return (
+                      <span
+                        className={`text-xs px-2.5 py-1 rounded-full bg-gradient-to-r ${getModeColor(
+                          session.mode
+                        )} text-white font-medium flex items-center gap-1`}
+                      >
+                        {ModeSessionIcon && <ModeSessionIcon size={12} />}
+                        {modeData?.label}
+                      </span>
+                    );
+                  })()}
                   <span className="text-xs text-gray-500 flex items-center gap-1">
                     <Clock size={11} />
                     {formatDate(session.date)}
@@ -468,48 +510,77 @@ function ChatHistory({
 
 function SuggestionCards({ mode, suggestions, onSuggestionClick }) {
   const currentMode = MODES.find((m) => m.id === mode);
+  const ModeIcon = currentMode.icon;
 
   return (
     <div className="max-w-5xl mx-auto px-4">
-      <div className="text-center mb-10">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 text-white text-3xl mb-4 shadow-lg">
-          {currentMode.icon}
-        </div>
-        <h2 className="text-4xl font-bold text-gray-900 mb-3">
+      {/* Mode Header */}
+      <motion.div
+        className="text-center mb-12"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <motion.div
+          className={`inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-r ${currentMode.color} text-white mb-6 shadow-xl`}
+          initial={{ scale: 0.8 }}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.1 }}
+        >
+          <ModeIcon size={36} strokeWidth={1.5} />
+        </motion.div>
+        <h2 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-4">
           {currentMode.label} Mode
         </h2>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+        <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
           {currentMode.desc}
         </p>
-      </div>
+      </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {suggestions.map((suggestion, idx) => (
-          <div
-            key={idx}
-            onClick={() => onSuggestionClick(suggestion)}
-            className="group relative bg-white border border-gray-200 rounded-xl p-6 cursor-pointer hover:shadow-xl hover:border-blue-300 transition-all duration-300 hover:-translate-y-1"
-          >
-            <div className="flex items-start gap-4">
-              <div className="text-3xl group-hover:scale-110 transition-transform duration-200 flex-shrink-0">
-                {suggestion.icon}
+      {/* Suggestion Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {suggestions.map((suggestion, idx) => {
+          const SuggestionIcon = suggestion.icon;
+          return (
+            <motion.div
+              key={idx}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: idx * 0.1 }}
+              onClick={() => onSuggestionClick(suggestion)}
+              className="group relative glass-card rounded-2xl p-6 cursor-pointer hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-blue-200 overflow-hidden"
+              whileHover={{ y: -4, scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
+            >
+              {/* Gradient overlay on hover */}
+              <div className={`absolute inset-0 bg-gradient-to-br ${currentMode.bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl`} />
+
+              <div className="relative flex items-start gap-4">
+                {/* Icon Container */}
+                <div className={`flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br ${currentMode.color} flex items-center justify-center text-white shadow-lg group-hover:scale-110 group-hover:shadow-xl transition-all duration-300`}>
+                  <SuggestionIcon size={22} strokeWidth={1.5} />
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-lg text-gray-900 mb-2 group-hover:text-blue-700 transition-colors">
+                    {suggestion.title}
+                  </h3>
+                  <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
+                    {suggestion.prompt}
+                  </p>
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-lg text-gray-900 mb-2 group-hover:text-blue-700 transition-colors">
-                  {suggestion.title}
-                </h3>
-                <p className="text-sm text-gray-600 line-clamp-2">
-                  {suggestion.prompt}
-                </p>
+
+              {/* Try this button */}
+              <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
+                <span className="text-sm text-blue-600 font-medium flex items-center gap-1.5 bg-blue-50 px-3 py-1.5 rounded-full">
+                  Try this <ArrowRight size={14} />
+                </span>
               </div>
-            </div>
-            <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              <span className="text-xs text-blue-600 font-medium flex items-center gap-1">
-                Try this <Send size={12} />
-              </span>
-            </div>
-          </div>
-        ))}
+            </motion.div>
+          );
+        })}
       </div>
     </div>
   );
@@ -536,21 +607,24 @@ function getLanguageName(code) {
 
 function MessageBubble({ m, onSpeakMessage, setTyping }) {
   const [showTranslation, setShowTranslation] = useState(false);
+  const [showTranslated, setShowTranslated] = useState(false);
   const isAI = m.role === "ai";
+  // Only enable typewriter effect for newly generated AI messages
+  const shouldType = isAI && m.isNew === true;
   const typedText = useTypewriter(m.text, {
     speed: 20,
-    enabled: isAI,
+    enabled: shouldType,
     onTypingState: setTyping,
   });
 
-  const displayText = typedText;
+  const displayText = shouldType ? typedText : m.text;
   const wasTranslated =
     m.role === "user" && m.translatedText && m.translatedText !== m.text;
 
   if (m.role === "user") {
     return (
       <div className="flex justify-end mb-4">
-        <div className="max-w-[50%] space-y-2">
+        <div className="max-w-[85%] md:max-w-[60%] space-y-2">
           {wasTranslated && (
             <div className="flex items-center justify-end gap-2 text-xs text-gray-500 mb-1">
               <Languages size={13} />
@@ -592,10 +666,10 @@ function MessageBubble({ m, onSpeakMessage, setTyping }) {
   } else {
     // AI message section - keep as updated before
     const aiWasTranslated = m.translatedText && m.translatedText !== m.text;
-    
+
     return (
       <div className="flex mb-4">
-        <div className="max-w-[50%]">
+        <div className="max-w-[85%] md:max-w-[60%]">
           <div className="bg-white border border-gray-200 p-4 rounded-2xl rounded-bl-md shadow-md">
             {aiWasTranslated && (
               <div className="flex items-center justify-between gap-2 text-xs text-gray-500 mb-2 pb-2 border-b border-gray-100">
@@ -617,7 +691,7 @@ function MessageBubble({ m, onSpeakMessage, setTyping }) {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="whitespace-pre-wrap break-words text-gray-800">
-                  {typedText}
+                  {displayText}
                 </div>
                 {aiWasTranslated && showTranslated && m.translatedText && (
                   <div className="text-xs mt-3 pt-3 text-gray-600 border-t border-gray-200 bg-blue-50 p-3 rounded-lg">
@@ -706,12 +780,31 @@ export default function ChatPage() {
   const [detectedLang, setDetectedLang] = useState(null);
   const [typing, setTyping] = useState(false);
   const [showModeDropdown, setShowModeDropdown] = useState(false);
-  const [showHistory, setShowHistory] = useState(true);
+  const [showHistory, setShowHistory] = useState(false); // Hidden by default, shown on larger screens
+  const [isMobile, setIsMobile] = useState(false);
 
   const inputRef = useRef();
   const messagesRef = useRef(null);
   const textareaRef = useRef(null);
   const modeDropdownRef = useRef(null);
+
+  // Detect screen size and update responsive states
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const checkScreenSize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      // Show history by default on desktop, hide on mobile
+      if (!mobile && !showHistory) {
+        setShowHistory(true);
+      }
+    };
+
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -849,122 +942,123 @@ export default function ChatPage() {
   };
 
   const ask = async (customPrompt = null) => {
-  const promptText = customPrompt || input;
-  if (!promptText && !filePreview) return;
+    const promptText = customPrompt || input;
+    if (!promptText && !filePreview) return;
 
-  let activeSessionId = currentSessionId;
-  if (!activeSessionId) {
-    activeSessionId = Date.now().toString();
-    setCurrentSessionId(activeSessionId);
-  }
-
-  setInput("");
-  setFilePreview(null);
-  setShowSuggestions(false);
-  setTranslating(true);
-
-  let translatedText = promptText;
-  let originalText = promptText;
-  let detectedLanguage = 'en';
-  let wasTranslated = false;
-
-  // Translate the input to English
-  try {
-    const translation = await translateToEnglish(promptText);
-    translatedText = translation.translatedText;
-    detectedLanguage = translation.detectedLanguage;
-    wasTranslated = translation.isTranslated;
-    
-    if (wasTranslated) {
-      setDetectedLang(detectedLanguage);
-      console.log(`Detected language: ${detectedLanguage}, Translated to English`);
+    let activeSessionId = currentSessionId;
+    if (!activeSessionId) {
+      activeSessionId = Date.now().toString();
+      setCurrentSessionId(activeSessionId);
     }
-  } catch (error) {
-    console.error('Translation failed, using original text:', error);
-  } finally {
-    setTranslating(false);
-  }
 
-  const userMsg = {
-    role: "user",
-    text: originalText,  // Original language text
-    translatedText: wasTranslated ? translatedText : null,  // English translation
-    detectedLanguage: wasTranslated ? detectedLanguage : null,
-    files: filePreview ? [filePreview] : [],
-    mode,
-  };
+    setInput("");
+    setFilePreview(null);
+    setShowSuggestions(false);
+    setTranslating(true);
 
-  setAiLoading(true);
+    let translatedText = promptText;
+    let originalText = promptText;
+    let detectedLanguage = 'en';
+    let wasTranslated = false;
 
-  let workingMessages = [];
-  setMessages((prev) => {
-    workingMessages = [...prev, userMsg];
-    return workingMessages;
-  });
-
-  let aiText = "";
-  try {
-    // Use the translated text for API calls
-    const textToSend = wasTranslated ? translatedText : promptText;
-    
-    if (mode === "explore") {
-      const profileContext = {};
-      try {
-        const userProfile = await getUserProfile();
-        if (userProfile) {
-          profileContext.skills = userProfile.skills;
-          profileContext.role = userProfile.role;
-          profileContext.experience = userProfile.experience;
-          profileContext.interests = userProfile.interests;
-          profileContext.location = userProfile.location;
-        }
-      } catch (profileErr) {
-        console.warn("Could not fetch user profile:", profileErr);
-      }
-      const { data } = await sendExplore({
-        question: textToSend,
-        profile: profileContext,
-      });
-      aiText = (data?.answer || data?.output || "No response").toString();
-    } else {
-      const { data } = await sendPrompt({ prompt: textToSend });
-      aiText = (data?.output || data?.answer || "No response").toString();
-    }
-  } catch (e) {
-    console.error("API request failed", e);
-    aiText = e?.response?.data?.error
-      ? `Error: ${e.response.data.error}`
-      : "Error processing request";
-  } finally {
-    setAiLoading(false);
-  }
-
-  // If user message was translated, translate AI response back to user's language
-  let aiTextInUserLanguage = aiText;
-  if (wasTranslated && detectedLanguage !== 'en') {
+    // Translate the input to English
     try {
-      // You'll need to create a translateFromEnglish function in your translateApi
-      // For now, we'll just store the English text and show translation option
-      aiTextInUserLanguage = aiText; // This would be the translated response
-    } catch (error) {
-      console.error('AI response translation failed:', error);
-    }
-  }
+      const translation = await translateToEnglish(promptText);
+      translatedText = translation.translatedText;
+      detectedLanguage = translation.detectedLanguage;
+      wasTranslated = translation.isTranslated;
 
-  const aiMsg = { 
-    role: "ai", 
-    text: aiTextInUserLanguage,  // Response in user's language (for now, English)
-    translatedText: wasTranslated ? aiText : null,  // Original English response
-    detectedLanguage: wasTranslated ? detectedLanguage : null,
-    files: [] 
+      if (wasTranslated) {
+        setDetectedLang(detectedLanguage);
+        console.log(`Detected language: ${detectedLanguage}, Translated to English`);
+      }
+    } catch (error) {
+      console.error('Translation failed, using original text:', error);
+    } finally {
+      setTranslating(false);
+    }
+
+    const userMsg = {
+      role: "user",
+      text: originalText,  // Original language text
+      translatedText: wasTranslated ? translatedText : null,  // English translation
+      detectedLanguage: wasTranslated ? detectedLanguage : null,
+      files: filePreview ? [filePreview] : [],
+      mode,
+    };
+
+    setAiLoading(true);
+
+    let workingMessages = [];
+    setMessages((prev) => {
+      workingMessages = [...prev, userMsg];
+      return workingMessages;
+    });
+
+    let aiText = "";
+    try {
+      // Use the translated text for API calls
+      const textToSend = wasTranslated ? translatedText : promptText;
+
+      if (mode === "explore") {
+        const profileContext = {};
+        try {
+          const userProfile = await getUserProfile();
+          if (userProfile) {
+            profileContext.skills = userProfile.skills;
+            profileContext.role = userProfile.role;
+            profileContext.experience = userProfile.experience;
+            profileContext.interests = userProfile.interests;
+            profileContext.location = userProfile.location;
+          }
+        } catch (profileErr) {
+          console.warn("Could not fetch user profile:", profileErr);
+        }
+        const { data } = await sendExplore({
+          question: textToSend,
+          profile: profileContext,
+        });
+        aiText = (data?.answer || data?.output || "No response").toString();
+      } else {
+        const { data } = await sendPrompt({ prompt: textToSend });
+        aiText = (data?.output || data?.answer || "No response").toString();
+      }
+    } catch (e) {
+      console.error("API request failed", e);
+      aiText = e?.response?.data?.error
+        ? `Error: ${e.response.data.error}`
+        : "Error processing request";
+    } finally {
+      setAiLoading(false);
+    }
+
+    // If user message was translated, translate AI response back to user's language
+    let aiTextInUserLanguage = aiText;
+    if (wasTranslated && detectedLanguage !== 'en') {
+      try {
+        // You'll need to create a translateFromEnglish function in your translateApi
+        // For now, we'll just store the English text and show translation option
+        aiTextInUserLanguage = aiText; // This would be the translated response
+      } catch (error) {
+        console.error('AI response translation failed:', error);
+      }
+    }
+
+    const aiMsg = {
+      role: "ai",
+      text: aiTextInUserLanguage,  // Response in user's language (for now, English)
+      translatedText: wasTranslated ? aiText : null,  // Original English response
+      detectedLanguage: wasTranslated ? detectedLanguage : null,
+      files: [],
+      isNew: true  // Flag to enable typing effect only for new messages
+    };
+
+    setMessages((prev) => {
+      const newMessages = [...prev, aiMsg];
+      persistSession(activeSessionId, newMessages);
+      return newMessages;
+    });
   };
-  
-  setMessages((prev) => {
-    const newMessages = [...prev, aiMsg];
-    persistSession(activeSessionId, newMessages);
-    return newMessages;
-  });
-};
 
   const persistSession = (sessionId, newMessages) => {
     if (!sessionId || newMessages.length === 0) return;
@@ -972,17 +1066,22 @@ export default function ChatPage() {
     const lastAiMsg = [...newMessages].reverse().find((m) => m.role === "ai");
     const title = firstUserMsg
       ? firstUserMsg.text.substring(0, 50) +
-        (firstUserMsg.text.length > 50 ? "..." : "")
+      (firstUserMsg.text.length > 50 ? "..." : "")
       : "Untitled Chat";
+    // Strip isNew flag when persisting to keep clean history data
+    const cleanMessages = newMessages.map(msg => {
+      const { isNew, ...rest } = msg;
+      return rest;
+    });
     const sessionData = {
       id: sessionId,
       title,
       mode,
       date: new Date(),
-      messageCount: newMessages.length,
+      messageCount: cleanMessages.length,
       preview: firstUserMsg?.text || "",
       lastMessage: lastAiMsg?.text || "",
-      messages: newMessages,
+      messages: cleanMessages,
     };
     setChatSessions((prev) => {
       const existingIndex = prev.findIndex((s) => s.id === sessionId);
@@ -1008,7 +1107,13 @@ export default function ChatPage() {
     const session = chatSessions.find((s) => s.id === sessionId);
     if (session) {
       setCurrentSessionId(sessionId);
-      setMessages(session.messages || []);
+      // When loading from history, ensure isNew is false for all messages
+      // This prevents the typing animation from playing
+      const messagesWithoutTyping = (session.messages || []).map(msg => ({
+        ...msg,
+        isNew: false  // Explicitly set to false for history messages
+      }));
+      setMessages(messagesWithoutTyping);
       setMode(session.mode);
       setShowSuggestions(session.messages?.length === 0);
       setInput("");
@@ -1035,255 +1140,296 @@ export default function ChatPage() {
   const currentModeData = MODES.find((m) => m.id === mode);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
-      <div className="h-screen flex">
-        {/* Left Sidebar - Chat History */}
-        {showHistory && (
-          <div className="w-80 flex-shrink-0">
-            <ChatHistory
-              sessions={chatSessions}
-              currentSessionId={currentSessionId}
-              searchHistory={searchHistory}
-              setSearchHistory={setSearchHistory}
-              onLoadSession={loadSession}
-              onDeleteSession={deleteSession}
-              onNewSession={createNewSession}
-              speaking={speaking}
-              onStopSpeaking={stopSpeaking}
+    <AuthGuard>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
+        <div className="h-screen flex relative">
+          {/* Mobile Overlay Backdrop */}
+          {showHistory && isMobile && (
+            <div
+              className="fixed inset-0 bg-black/50 z-40 md:hidden"
+              onClick={() => setShowHistory(false)}
             />
-          </div>
-        )}
-        {/* Main Chat Area */}
-        <div className="flex-1 flex flex-col">
-          {/* Toggle History Button */}
-          <div className="bg-white border-b border-gray-200 px-4 py-2 flex items-center">
-            <button
-              onClick={() => setShowHistory(!showHistory)}
-              className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
-              title={showHistory ? "Hide history" : "Show history"}
-            >
-              {showHistory ? <ChevronLeft size={20} /> : <MessageSquare size={20} />}
-            </button>
-          </div>
-          {/* Messages */}
-          <div
-            ref={messagesRef}
-            className="flex-1 overflow-y-auto px-4 py-4 bg-white"
-          >
-            {messages.length === 0 && showSuggestions ? (
-              <div className="h-full flex items-center justify-center">
-                <SuggestionCards
-                  mode={mode}
-                  suggestions={MODE_SUGGESTIONS[mode]}
-                  onSuggestionClick={handleSuggestionClick}
-                />
-              </div>
-            ) : (
-              <div className="mx-auto">
-                {messages.map((m, idx) => (
-                  <MessageBubble
-                    key={idx}
-                    m={m}
-                    onSpeakMessage={speakMessage}
-                    setTyping={setTyping}
-                  />
-                ))}
+          )}
 
-                {aiLoading && (
-                  <div className="flex mb-4">
-                    <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-md shadow-md p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
-                          <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+          {/* Left Sidebar - Chat History */}
+          <AnimatePresence>
+            {showHistory && (
+              <motion.div
+                initial={{ x: isMobile ? -320 : 0, opacity: isMobile ? 0 : 1 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: -320, opacity: 0 }}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                className={`${isMobile ? 'fixed left-0 top-0 bottom-0 z-50' : 'relative flex-shrink-0'} w-80 max-w-[85vw]`}
+              >
+                <ChatHistory
+                  sessions={chatSessions}
+                  currentSessionId={currentSessionId}
+                  searchHistory={searchHistory}
+                  setSearchHistory={setSearchHistory}
+                  onLoadSession={(id) => {
+                    loadSession(id);
+                    if (isMobile) setShowHistory(false);
+                  }}
+                  onDeleteSession={deleteSession}
+                  onNewSession={() => {
+                    createNewSession();
+                    if (isMobile) setShowHistory(false);
+                  }}
+                  speaking={speaking}
+                  onStopSpeaking={stopSpeaking}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Main Chat Area */}
+          <div className="flex-1 flex flex-col min-w-0">
+            {/* Toggle History Button */}
+            <div className="bg-white border-b border-gray-200 px-3 md:px-4 py-2 flex items-center">
+              <button
+                onClick={() => setShowHistory(!showHistory)}
+                className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
+                title={showHistory ? "Hide history" : "Show history"}
+              >
+                {showHistory ? <ChevronLeft size={20} /> : <MessageSquare size={20} />}
+              </button>
+            </div>
+            {/* Messages */}
+            <div
+              ref={messagesRef}
+              className="flex-1 overflow-y-auto px-4 py-4 bg-white"
+            >
+              {messages.length === 0 && showSuggestions ? (
+                <div className="h-full flex items-center justify-center">
+                  <SuggestionCards
+                    mode={mode}
+                    suggestions={MODE_SUGGESTIONS[mode]}
+                    onSuggestionClick={handleSuggestionClick}
+                  />
+                </div>
+              ) : (
+                <div className="mx-auto">
+                  {messages.map((m, idx) => (
+                    <MessageBubble
+                      key={idx}
+                      m={m}
+                      onSpeakMessage={speakMessage}
+                      setTyping={setTyping}
+                    />
+                  ))}
+
+                  {aiLoading && (
+                    <div className="flex mb-4">
+                      <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-md shadow-md p-4">
+                        <div className="flex items-center gap-3">
+                          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
+                            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                          </div>
+                          <div className="flex gap-1.5">
+                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                            <div
+                              className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                              style={{ animationDelay: "0.1s" }}
+                            ></div>
+                            <div
+                              className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                              style={{ animationDelay: "0.2s" }}
+                            ></div>
+                          </div>
+                          <span className="text-sm text-gray-500">
+                            AI is thinking...
+                          </span>
                         </div>
-                        <div className="flex gap-1.5">
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                          <div
-                            className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                            style={{ animationDelay: "0.1s" }}
-                          ></div>
-                          <div
-                            className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                            style={{ animationDelay: "0.2s" }}
-                          ></div>
-                        </div>
-                        <span className="text-sm text-gray-500">
-                          AI is thinking...
-                        </span>
                       </div>
                     </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Input Area */}
+            <div className="border-t border-gray-200 bg-gray-50/50 p-6">
+              <div className="max-w-4xl mx-auto">
+                {/* Translation indicators */}
+                {detectedLang && (
+                  <div className="mb-3 flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50 px-4 py-2.5 rounded-lg border border-emerald-200">
+                    <Globe size={16} />
+                    <span className="font-medium">
+                      Detected {getLanguageName(detectedLang)} - Auto-translating
+                      to English
+                    </span>
                   </div>
                 )}
-              </div>
-            )}
-          </div>
 
-          {/* Input Area */}
-          <div className="border-t border-gray-200 bg-gray-50/50 p-6">
-            <div className="max-w-4xl mx-auto">
-              {/* Translation indicators */}
-              {detectedLang && (
-                <div className="mb-3 flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50 px-4 py-2.5 rounded-lg border border-emerald-200">
-                  <Globe size={16} />
-                  <span className="font-medium">
-                    Detected {getLanguageName(detectedLang)} - Auto-translating
-                    to English
-                  </span>
-                </div>
-              )}
+                {translating && (
+                  <div className="mb-3 flex items-center gap-2 text-sm text-blue-700 bg-blue-50 px-4 py-2.5 rounded-lg border border-blue-200">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-700"></div>
+                    <span className="font-medium">
+                      Translating your message...
+                    </span>
+                  </div>
+                )}
 
-              {translating && (
-                <div className="mb-3 flex items-center gap-2 text-sm text-blue-700 bg-blue-50 px-4 py-2.5 rounded-lg border border-blue-200">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-700"></div>
-                  <span className="font-medium">
-                    Translating your message...
-                  </span>
-                </div>
-              )}
+                {/* File preview */}
+                {filePreview && (
+                  <div className="mb-3 inline-flex items-center gap-3 bg-blue-50 px-4 py-2.5 rounded-lg border border-blue-200">
+                    {filePreview.type?.startsWith("image") ? (
+                      <ImageIcon size={16} className="text-blue-600" />
+                    ) : (
+                      <FileText size={16} className="text-blue-600" />
+                    )}
+                    <span className="text-sm text-blue-700 font-medium">
+                      {filePreview.name}
+                    </span>
+                    <button
+                      onClick={() => setFilePreview(null)}
+                      className="text-blue-600 hover:text-red-600 transition-colors"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                )}
 
-              {/* File preview */}
-              {filePreview && (
-                <div className="mb-3 inline-flex items-center gap-3 bg-blue-50 px-4 py-2.5 rounded-lg border border-blue-200">
-                  {filePreview.type?.startsWith("image") ? (
-                    <ImageIcon size={16} className="text-blue-600" />
-                  ) : (
-                    <FileText size={16} className="text-blue-600" />
-                  )}
-                  <span className="text-sm text-blue-700 font-medium">
-                    {filePreview.name}
-                  </span>
-                  <button
-                    onClick={() => setFilePreview(null)}
-                    className="text-blue-600 hover:text-red-600 transition-colors"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-              )}
-
-              {/* Input row */}
-              <div className="flex gap-3">
-                {/* Mode Selector Dropdown */}
-                <div className="relative" ref={modeDropdownRef}>
-                  <button
-                    onClick={() => setShowModeDropdown(!showModeDropdown)}
-                    className={`h-14 px-4 rounded-xl border-2 border-gray-200 bg-white hover:border-blue-500 transition-all duration-200 flex items-center gap-2 font-medium text-sm shadow-sm hover:shadow-md bg-gradient-to-r ${currentModeData.color} text-white`}
-                    title="Select mode"
-                  >
-                    <span className="text-lg">{currentModeData.icon}</span>
-                    <span className="hidden sm:inline">{currentModeData.label}</span>
-                    <ChevronDown
-                      size={16}
-                      className={`transition-transform duration-200 ${
-                        showModeDropdown ? "rotate-180" : ""
-                      }`}
-                    />
-                  </button>
-
-                  {showModeDropdown && (
-                    <div className="absolute bottom-full mb-2 left-0 w-64 bg-white rounded-xl shadow-2xl border border-gray-200 py-2 z-50 max-h-96 overflow-y-auto">
-                      {MODES.map((m) => (
-                        <button
-                          key={m.id}
-                          onClick={() => {
-                            setMode(m.id);
-                            setShowModeDropdown(false);
-                            if (mode !== m.id) {
-                              createNewSession();
-                            }
-                          }}
-                          className={`w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-start gap-3 ${
-                            mode === m.id ? "bg-blue-50" : ""
-                          }`}
+                {/* Input row */}
+                <div className="flex gap-3">
+                  {/* Mode Selector Dropdown */}
+                  <div className="relative" ref={modeDropdownRef}>
+                    {(() => {
+                      const CurrentModeIcon = currentModeData.icon;
+                      return (
+                        <motion.button
+                          onClick={() => setShowModeDropdown(!showModeDropdown)}
+                          className={`h-14 px-5 rounded-xl border-0 transition-all duration-200 flex items-center gap-2.5 font-medium text-sm shadow-lg hover:shadow-xl bg-gradient-to-r ${currentModeData.color} text-white`}
+                          title="Select mode"
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
                         >
-                          <span className="text-2xl">{m.icon}</span>
-                          <div className="flex-1">
-                            <div
-                              className={`font-semibold text-sm mb-1 ${
-                                mode === m.id ? "text-blue-700" : "text-gray-900"
+                          <CurrentModeIcon size={20} strokeWidth={1.5} />
+                          <span className="hidden sm:inline">{currentModeData.label}</span>
+                          <ChevronDown
+                            size={16}
+                            className={`transition-transform duration-200 ${showModeDropdown ? "rotate-180" : ""
                               }`}
-                            >
-                              {m.label}
-                            </div>
-                            <div className="text-xs text-gray-500">{m.desc}</div>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                          />
+                        </motion.button>
+                      );
+                    })()}
 
-                <div className="flex-1 relative">
-                  <textarea
-                    ref={textareaRef}
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault();
-                        if (!typing && !aiLoading) ask();
-                      }
-                    }}
-                    disabled={typing || aiLoading}
-                    placeholder={`Ask anything in ${currentModeData.label} mode...`}
-                    className="w-full resize-none p-4 pr-12 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-white"
-                    rows={1}
-                    style={{ minHeight: "56px", maxHeight: "120px" }}
-                  />
+                    <AnimatePresence>
+                      {showModeDropdown && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                          transition={{ duration: 0.2 }}
+                          className="absolute bottom-full mb-2 left-0 w-72 glass-card rounded-2xl shadow-2xl py-2 z-50 max-h-96 overflow-y-auto"
+                        >
+                          {MODES.map((m) => {
+                            const ModeItemIcon = m.icon;
+                            return (
+                              <button
+                                key={m.id}
+                                onClick={() => {
+                                  setMode(m.id);
+                                  setShowModeDropdown(false);
+                                  if (mode !== m.id) {
+                                    createNewSession();
+                                  }
+                                }}
+                                className={`w-full px-4 py-3 text-left hover:bg-gray-50/80 transition-all duration-200 flex items-start gap-3 ${mode === m.id ? "bg-blue-50/80" : ""
+                                  }`}
+                              >
+                                <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${m.color} flex items-center justify-center text-white shadow-md`}>
+                                  <ModeItemIcon size={18} strokeWidth={1.5} />
+                                </div>
+                                <div className="flex-1">
+                                  <div
+                                    className={`font-semibold text-sm mb-0.5 ${mode === m.id ? "text-blue-700" : "text-gray-900"
+                                      }`}
+                                  >
+                                    {m.label}
+                                  </div>
+                                  <div className="text-xs text-gray-500">{m.desc}</div>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
 
-                  <label className="absolute right-3 top-3 cursor-pointer p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200">
-                    <Upload size={20} />
-                    <input
-                      type="file"
-                      accept="application/pdf,image/*"
-                      onChange={(e) => handleFiles(e.target.files)}
-                      className="hidden"
+                  <div className="flex-1 relative">
+                    <textarea
+                      ref={textareaRef}
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          if (!typing && !aiLoading) ask();
+                        }
+                      }}
+                      disabled={typing || aiLoading}
+                      placeholder={`Ask anything in ${currentModeData.label} mode...`}
+                      className="w-full resize-none p-4 pr-12 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-white"
+                      rows={1}
+                      style={{ minHeight: "56px", maxHeight: "120px" }}
                     />
-                  </label>
-                </div>
 
-                <div className="flex gap-2">
-                  <button
-                    onClick={() =>
-                      listening ? stopListening() : startListening()
-                    }
-                    disabled={aiLoading}
-                    className={`p-4 rounded-xl font-medium transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg ${
-                      listening
+                    <label className="absolute right-3 top-3 cursor-pointer p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200">
+                      <Upload size={20} />
+                      <input
+                        type="file"
+                        accept="application/pdf,image/*"
+                        onChange={(e) => handleFiles(e.target.files)}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() =>
+                        listening ? stopListening() : startListening()
+                      }
+                      disabled={aiLoading}
+                      className={`p-4 rounded-xl font-medium transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg ${listening
                         ? "bg-red-500 text-white"
                         : "bg-white border-2 border-gray-200 text-gray-600 hover:border-blue-500 hover:text-blue-600"
-                    }`}
-                    title={listening ? "Stop listening" : "Start voice input"}
-                  >
-                    {listening ? <MicOff size={20} /> : <Mic size={20} />}
-                  </button>
+                        }`}
+                      title={listening ? "Stop listening" : "Start voice input"}
+                    >
+                      {listening ? <MicOff size={20} /> : <Mic size={20} />}
+                    </button>
 
-                  <button
-                    onClick={() => ask()}
-                    disabled={
-                      aiLoading || typing || (!input && !filePreview)
-                    }
-                    className={`px-6 py-4 rounded-xl font-medium text-white transition-all duration-200 shadow-md hover:shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r ${currentModeData.color}`}
-                    title="Send message"
-                  >
-                    <Send size={20} />
-                  </button>
+                    <button
+                      onClick={() => ask()}
+                      disabled={
+                        aiLoading || typing || (!input && !filePreview)
+                      }
+                      className={`px-6 py-4 rounded-xl font-medium text-white transition-all duration-200 shadow-md hover:shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r ${currentModeData.color}`}
+                      title="Send message"
+                    >
+                      <Send size={20} />
+                    </button>
+                  </div>
                 </div>
-              </div>
 
-              <div className="mt-3 text-xs text-gray-500 text-center">
-                Press{" "}
-                <kbd className="px-2 py-1 bg-gray-200 rounded">Enter</kbd> to
-                send,{" "}
-                <kbd className="px-2 py-1 bg-gray-200 rounded">
-                  Shift + Enter
-                </kbd>{" "}
-                for new line
+                <div className="mt-3 text-xs text-gray-500 text-center">
+                  Press{" "}
+                  <kbd className="px-2 py-1 bg-gray-200 rounded">Enter</kbd> to
+                  send,{" "}
+                  <kbd className="px-2 py-1 bg-gray-200 rounded">
+                    Shift + Enter
+                  </kbd>{" "}
+                  for new line
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </AuthGuard>
   );
 } 
